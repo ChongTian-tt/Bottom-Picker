@@ -71,8 +71,8 @@ class ExampleApp extends StatelessWidget {
     return Container(
       color: Color(0xffF6F2F2),
       width: double.infinity,
+      padding: EdgeInsets.all(10),
       child: Column(
-        spacing: 10,
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -237,9 +237,7 @@ class ExampleApp extends StatelessWidget {
           ],
         );
       },
-      backgroundColor: Colors.yellow.withValues(
-        alpha: 0.6,
-      ),
+      backgroundColor: Colors.yellow.withOpacity(0.6),
       bottomPickerTheme: BottomPickerTheme.morningSalad,
       onSubmit: (index) {
         print(index);

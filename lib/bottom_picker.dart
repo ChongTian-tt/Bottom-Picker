@@ -880,7 +880,7 @@ class BottomPickerState extends State<BottomPicker> {
       selectedDateTime = widget.initialDateTime ?? DateTime.now();
     }
 
-    if (kIsWeb || (!Platform.isIOS && !Platform.isAndroid)) {
+    if (kIsWeb || (!Platform.isIOS && !Platform.isAndroid && !Platform.isOhos)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         View.of(context).platformDispatcher.onKeyData = _onKeyPressed;
       });
@@ -889,7 +889,7 @@ class BottomPickerState extends State<BottomPicker> {
 
   @override
   void dispose() {
-    if (kIsWeb || (!Platform.isIOS && !Platform.isAndroid)) {
+    if (kIsWeb || (!Platform.isIOS && !Platform.isAndroid && !Platform.isOhos)) {
       try {
         View.of(context).platformDispatcher.onKeyData = null;
       } catch (e) {

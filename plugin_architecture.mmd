@@ -1,0 +1,189 @@
+# Bottom-Picker插件架构分析
+
+## 1. 软件系统上下文定义图
+```mermaid
+graph LR
+    subgraph "用户应用层"
+        A[用户应用] -->|调用| B[Bottom-Picker插件]
+    end
+    
+    subgraph "Bottom-Picker插件层"
+        B -->|使用| C[核心组件]
+        B -->|使用| D[选择器组件]
+        B -->|使用| E[UI组件]
+        B -->|使用| F[资源和工具]
+    end
+    
+    subgraph "Flutter框架层"
+        C -->|依赖| G[Flutter基础组件]
+        D -->|依赖| G
+        E -->|依赖| G
+        F -->|依赖| G
+        G -->|渲染| H[设备UI]
+    end
+    
+    subgraph "设备平台层"
+        H -->|iOS| I[Cupertino风格UI]
+        H -->|Android| J[Material风格UI]
+        H -->|Web/桌面| K[通用UI渲染]
+        H -->|OpenHarmony| L[OHOS风格UI]
+    end
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#bfb,stroke:#333,stroke-width:2px
+    style D fill:#bfb,stroke:#333,stroke-width:2px
+    style E fill:#bfb,stroke:#333,stroke-width:2px
+    style F fill:#bfb,stroke:#333,stroke-width:2px
+    style G fill:#ccf,stroke:#333,stroke-width:2px
+    style H fill:#ffb,stroke:#333,stroke-width:2px
+    style I fill:#fbf,stroke:#333,stroke-width:2px
+    style J fill:#fbf,stroke:#333,stroke-width:2px
+    style K fill:#fbf,stroke:#333,stroke-width:2px
+    style L fill:#fbf,stroke:#333,stroke-width:2px
+```
+
+## 2. 模块划分图
+```mermaid
+graph TD
+    subgraph "核心模块"
+        A[BottomPicker主类] -->|创建| B1[简单选择器]
+        A -->|创建| B2[日期选择器]
+        A -->|创建| B3[时间选择器]
+        A -->|创建| B4[计时器选择器]
+        A -->|创建| B5[范围选择器]
+        A -->|管理| C[配置和状态]
+    end
+    
+    subgraph "选择器组件模块"
+        B1 -->|使用| D1[SimplePicker]
+        B2 -->|使用| D2[DatePicker]
+        B3 -->|使用| D3[TimePicker]
+        B4 -->|使用| D4[CupertinoTimerPicker]
+        B5 -->|使用| D5[RangePicker]
+    end
+    
+    subgraph "UI组件模块"
+        E1[BottomPickerButton] -->|渲染| F1[提交按钮]
+        E2[CloseIcon] -->|渲染| F2[关闭图标]
+    end
+    
+    subgraph "资源与工具模块"
+        G1[arrays.dart] -->|定义| H1[BottomPickerType枚举]
+        G1 -->|定义| H2[BottomPickerTheme枚举]
+        G2[time.dart] -->|定义| H3[Time类]
+        G3[extensions.dart] -->|提供| H4[扩展功能]
+        G4[context_extension.dart] -->|提供| H5[上下文扩展]
+    end
+    
+    C -->|配置| E1
+    C -->|配置| E2
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B1 fill:#bbf,stroke:#333,stroke-width:2px
+    style B2 fill:#bbf,stroke:#333,stroke-width:2px
+    style B3 fill:#bbf,stroke:#333,stroke-width:2px
+    style B4 fill:#bbf,stroke:#333,stroke-width:2px
+    style B5 fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#ffb,stroke:#333,stroke-width:2px
+    style D1 fill:#bfb,stroke:#333,stroke-width:2px
+    style D2 fill:#bfb,stroke:#333,stroke-width:2px
+    style D3 fill:#bfb,stroke:#333,stroke-width:2px
+    style D4 fill:#bfb,stroke:#333,stroke-width:2px
+    style D5 fill:#bfb,stroke:#333,stroke-width:2px
+    style E1 fill:#ccf,stroke:#333,stroke-width:2px
+    style E2 fill:#ccf,stroke:#333,stroke-width:2px
+    style F1 fill:#fbf,stroke:#333,stroke-width:2px
+    style F2 fill:#fbf,stroke:#333,stroke-width:2px
+    style G1 fill:#bbf,stroke:#333,stroke-width:2px
+    style G2 fill:#bbf,stroke:#333,stroke-width:2px
+    style G3 fill:#bbf,stroke:#333,stroke-width:2px
+    style G4 fill:#bbf,stroke:#333,stroke-width:2px
+    style H1 fill:#ffb,stroke:#333,stroke-width:2px
+    style H2 fill:#ffb,stroke:#333,stroke-width:2px
+    style H3 fill:#ffb,stroke:#333,stroke-width:2px
+    style H4 fill:#ffb,stroke:#333,stroke-width:2px
+    style H5 fill:#ffb,stroke:#333,stroke-width:2px
+```
+
+## 3. 流程图
+```mermaid
+graph TD
+    A[用户创建BottomPicker实例] --> B{选择器类型?}
+    B -- 简单选择器 --> C1[创建基本选择器]
+    B -- 日期选择器 --> C2[创建日期选择器]
+    B -- 时间选择器 --> C3[创建时间选择器]
+    B -- 其他类型 --> C4[创建对应选择器]
+    
+    C1 --> D[配置选择器参数]
+    C2 --> D
+    C3 --> D
+    C4 --> D
+    
+    D --> E{是否设置回调?}
+    E -- 是 --> F1[设置onChange/onSubmit/onDismiss]
+    E -- 否 --> F2[使用默认行为]
+    
+    F1 --> G[显示选择器]
+    F2 --> G
+    
+    G --> H{用户交互?}
+    H -- 选择项目 --> I1[触发onChange回调]
+    H -- 点击提交 --> I2[触发onSubmit回调并关闭]
+    H -- 点击关闭/背景 --> I3[触发onDismiss回调并关闭]
+    
+    I1 --> G
+    I2 --> J[选择器关闭]
+    I3 --> J
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#ffb,stroke:#333,stroke-width:2px
+    style C1 fill:#bbf,stroke:#333,stroke-width:2px
+    style C2 fill:#bbf,stroke:#333,stroke-width:2px
+    style C3 fill:#bbf,stroke:#333,stroke-width:2px
+    style C4 fill:#bbf,stroke:#333,stroke-width:2px
+    style D fill:#bfb,stroke:#333,stroke-width:2px
+    style E fill:#ffb,stroke:#333,stroke-width:2px
+    style F1 fill:#ccf,stroke:#333,stroke-width:2px
+    style F2 fill:#ccf,stroke:#333,stroke-width:2px
+    style G fill:#f9f,stroke:#333,stroke-width:2px
+    style H fill:#ffb,stroke:#333,stroke-width:2px
+    style I1 fill:#bbf,stroke:#333,stroke-width:2px
+    style I2 fill:#bbf,stroke:#333,stroke-width:2px
+    style I3 fill:#bbf,stroke:#333,stroke-width:2px
+    style J fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+## 4. 时序图
+```mermaid
+sequenceDiagram
+    participant U as 用户应用
+    participant BP as BottomPicker主类
+    participant CP as 具体选择器组件
+    participant UI as UI组件
+    participant F as Flutter框架
+    
+    U->>+BP: 创建选择器实例
+    BP->>+BP: 初始化配置和状态
+    BP->>-U: 返回选择器实例
+    
+    U->>+BP: 显示选择器
+    BP->>+F: 调用showModalBottomSheet
+    F->>+BP: 构建UI
+    BP->>+CP: 创建具体选择器组件
+    CP->>+UI: 创建按钮/图标等UI组件
+    UI->>-CP: 返回UI组件
+    CP->>-BP: 返回选择器UI
+    BP->>-F: 返回完整UI
+    F->>-U: 显示底部弹窗
+    
+    U->>+CP: 用户交互(选择项目)
+    CP->>+BP: 通知onChange
+    BP->>-U: 触发onChange回调
+    
+    U->>+UI: 用户点击提交按钮
+    UI->>+BP: 通知onSubmit
+    BP->>+F: 请求关闭弹窗
+    F->>-BP: 弹窗关闭
+    BP->>-U: 触发onSubmit回调
+```

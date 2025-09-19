@@ -27,7 +27,7 @@ class SimplePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
+    if (!kIsWeb && (Platform.isIOS || Platform.isAndroid || Platform.isOhos)) {
       return CupertinoTheme(
         data: CupertinoThemeData(
           textTheme: pickerThemeData ??
